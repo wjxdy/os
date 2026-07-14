@@ -1,0 +1,9 @@
+[workspace]
+resolver = "3"
+members = ["labs", "freestanding"]
+
+[toolchain]
+channel = "1.96.0"
+profile = "minimal"
+components = ["clippy", "rustfmt", "rust-src"]
+targets = ["x86_64-unknowbn"]
