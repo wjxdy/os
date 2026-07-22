@@ -1,5 +1,8 @@
 # Rust 操作系统基础认知文档 Implementation Plan
 
+> [!note] 2026-07-22 迁移说明
+> 本计划已经执行完成。随后用户决定把 Rust OS 资料迁入独立 Obsidian Vault；当前正文位于 `/Users/xulei/Library/Mobile Documents/iCloud~md~obsidian/Documents/Rust OS/01-基础认知/Rust 操作系统基础认知地图.md`。下文中的 `项目学习` 路径、验收命令和 WikiLink 是历史执行记录，不应再用于后续写入；现行规则见项目根目录 `AGENTS.md`。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 在 Obsidian 中创建一篇让有 Java/C++/Rust、线程、Tokio 与网络服务经验，但没有操作系统基础的学习者能够读懂的《Rust 操作系统基础认知地图》，并与既有 Tokio 笔记建立双向知识链接。

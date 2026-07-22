@@ -4,6 +4,9 @@
 - 状态：书面设计已通过（2026-07-22）
 - 文档类型：面向初学者的 Obsidian 学习文档
 
+> [!note] 2026-07-22 存放位置变更
+> 本设计实施完成后，用户决定为 Rust OS 建立独立 Obsidian Vault。当前正文已迁移到 `/Users/xulei/Library/Mobile Documents/iCloud~md~obsidian/Documents/Rust OS/01-基础认知/Rust 操作系统基础认知地图.md`；本文后续出现的 `项目学习` 旧路径和原生 WikiLink 方案只记录当时设计，不再作为当前写入规则。现行规则见项目根目录 `AGENTS.md`。
+
 ## 1. 背景
 
 原阶段 0 课程过早进入 Cargo workspace、toolchain、target 和裸机编译配置。学习者尚未建立这些工具所服务的操作系统心智模型，因此注意力被配置语法和专业词汇消耗，影响理解与学习热情。
