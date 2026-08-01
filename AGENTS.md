@@ -17,4 +17,4 @@
 ## 当前入口
 
 - 学习主页：`/Users/xulei/Library/Mobile Documents/iCloud~md~obsidian/Documents/Rust OS/00-学习主页.md`
-- 基础认知地图：`/Users/xulei/Library/Mobile Documents/iCloud~md~obsidian/Documents/Rust OS/01-基础认知/Rust 操作系统基础认知地图.md`
+- 基础认知章节导航：`/Users/xulei/Library/Mobile Documents/iCloud~md~obsidian/Documents/Rust OS/01-基础认知/00-章节导航.md`
