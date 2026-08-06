@@ -1,13 +1,15 @@
 #![no_std]
 #![no_main]
 
+mod serial;
+
 use bootloader_api::{BootInfo, entry_point};
 use core::{fmt::Write, panic::PanicInfo};
 
 entry_point!(kernel_main);
 
-fn serial_port() -> uart_16550::SerialPort {
-    let mut port = unsafe { uart_16550::SerialPort::new(0x3F8) };
+fn serial_port() -> serial::SerialPort {
+    let mut port = unsafe { serial::SerialPort::new(0x3F8) };
     port.init();
     port
 }
