@@ -1,6 +1,7 @@
 # 项目待办
 
 ## 下一步
+- [ ] 亲手修复 `kernel/src/serial.rs`（当前含笔误）并接入内核，替换 `uart_16550`，以 `cargo run` 看到 `Rust OS: kernel entered` 为验收。
 - [ ] 更新 Obsidian 教程《01-第一次启动 Rust 内核》状态为“已执行完成”，并记录真实 Rust/Cargo/QEMU 版本和完成 commit。
 - [ ] 设计并实现阶段 2 第一个子里程碑：CPU 异常与 IDT（捕获断点和页错误，时钟中断）。
 
