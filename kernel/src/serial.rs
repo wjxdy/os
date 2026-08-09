@@ -27,13 +27,13 @@ impl SerialPort {
         self.base
     }
     const fn ier(&self) -> u16 {
-        self.base + 2
+        self.base + 1
     }
     const fn fcr(&self) -> u16 {
-        self.base + 3
+        self.base + 2
     }
     const fn lcr(&self) -> u16 {
-        self.base + 4
+        self.base + 3
     }
     const fn lsr(&self) -> u16 {
         self.base + 5

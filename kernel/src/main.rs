@@ -16,7 +16,7 @@ fn serial_port() -> serial::SerialPort {
 
 fn kernel_main(_boot_info: &'static mut BootInfo) -> ! {
     let mut serial = serial_port();
-    writeln!(serial, "Rust Os: kernel entered").expect("failed to write to COM1");
+    writeln!(serial, "Rust OS: kernel entered").expect("failed to write to COM1");
     loop {
         core::hint::spin_loop();
     }
