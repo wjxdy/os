@@ -2,8 +2,8 @@
 
 ## 基本信息
 - 项目名称：Rust 类 Unix 内核学习项目
-- 当前阶段：第一次启动与自有 COM1 驱动均已完成；准备进入像素 framebuffer
-- 最后更新：2026-08-09
+- 当前阶段：第一次启动与自有 COM1 驱动均已完成；像素 framebuffer 实验 03 教程已准备，等待学习者亲手执行
+- 最后更新：2026-08-15
 
 ## 当前状态
 - 项目范围、技术路线、内核架构、课程阶段和工程规则已经正式批准。
@@ -14,8 +14,9 @@
 - Rust OS 第一次启动里程碑已由学习者亲手完成并验证：QEMU 11.0.3、nightly-2026-07-27、BIOS 镜像和串口打印 `Rust OS: kernel entered` 全部就绪。
 - 完整学习教程已生成到 Rust OS Vault 的 `02-内核实验/01-第一次启动 Rust 内核.md`，并已从学习主页、手写内核路线及相关基础章节建立 WikiLink；首次启动实验已执行完成，真实版本和复验状态已经回写。
 - 自有串口驱动位于 `kernel/src/serial.rs`，已经接入内核并移除 `uart_16550`；`cargo build` 与 `cargo run` 均通过，QEMU 能显示内核消息。
-- HEAD `46cdb09` 中曾有三个串口初始化偏移错误和一处 `Rust Os` 文案笔误；2026-08-09 学习者已在工作区亲手修正，格式检查、完整构建和 QEMU 实际运行均通过，精确输出 `Rust OS: kernel entered`。相关源码改动尚未提交。
-- 阶段三已从传统 `0xB8000` VGA 文本模式改为 bootloader 0.11 的像素 framebuffer 路线；下一步通过 `BootInfo.framebuffer` 完成元数据观察、纯色、像素、字符和双输出。
+- HEAD `46cdb09` 中曾有三个串口初始化偏移错误和一处 `Rust Os` 文案笔误；学习者已完成修复和运行验收，相关修复现已包含在提交 `588885d` 中。
+- 阶段三已从传统 `0xB8000` VGA 文本模式改为 bootloader 0.11 的像素 framebuffer 路线。当前工作区已从 runner 移除 `-display none`，该修改尚未提交。
+- 2026-08-15 已生成完整教程 `Rust OS/02-内核实验/08-实验03：第一次像素 Framebuffer 输出.md`，覆盖图形窗口、framebuffer 元数据、颜色、单像素、清屏、横线、矩形、验收和排错。教程最终代码已在临时副本中通过格式检查、完整构建和 QEMU 启动验证；学习者尚未在正式项目中亲手执行。
 
 ## 已完成
 - 明确目标是从零实现教学型类 Unix OS，而不是重写或兼容 Linux。
@@ -40,6 +41,7 @@
 - 2026-08-06：进度文档同步为“第一次启动已完成”；串口驱动替换留给学习者亲手完成。
 - 2026-08-09：复验 HEAD `46cdb09`，确认自有 COM1 发送链路已接入并移除 `uart_16550`，同时识别出三个寄存器偏移错误和一处输出文案笔误；学习者随后完成修复，`cargo fmt --all -- --check`、`cargo build` 和 `cargo run` 均成功，QEMU 精确输出 `Rust OS: kernel entered`。
 - 2026-08-09：修订 Rust OS Vault：回写实验 01/02 状态，校正 `asm!`、FIFO 和 volatile 表述，将阶段三重写为 bootloader 0.11 像素 framebuffer 路线。
+- 2026-08-15：完成《实验 03：第一次像素 Framebuffer 输出》完整动手教程；临时副本实际观察到 `1280x720`、`Bgr`、每像素 3 字节，并运行到 `framebuffer: test pattern drawn`。正式项目源码仍留给学习者亲手输入。
 
 ## 关键决策
 - 2026-07-13：第一版只支持 x86_64 QEMU，完成后再考虑 AArch64。
@@ -64,7 +66,7 @@
 - 已安装 Rust 1.96.0 stable；项目需要在首个启动实验中选择并固定兼容的 nightly。
 - 已安装 QEMU 11.0.3（`/opt/homebrew/bin/qemu-system-x86_64`），项目固定 `nightly-2026-07-27` 并安装 `x86_64-unknown-none` 目标。
 - 项目必须提交 `rust-toolchain.toml`、`Cargo.lock` 并记录 QEMU 版本。
-- 内核已不再依赖 `uart_16550`；自有串口驱动位于 `kernel/src/serial.rs` 并已接入，初始化偏移已在未提交工作区中修正并通过运行验证。
+- 内核已不再依赖 `uart_16550`；自有串口驱动位于 `kernel/src/serial.rs` 并已接入，初始化偏移修复已经提交并通过运行验证。
 - 2026-08-09 实际工具版本：`rustc 1.99.0-nightly (nightly-2026-07-27)`、`cargo 1.99.0-nightly`、QEMU 11.0.3。
 - Rust OS 学习资料根目录为 `/Users/xulei/Library/Mobile Documents/iCloud~md~obsidian/Documents/Rust OS/`；当前学习入口是 `00-学习主页.md`。
 
@@ -72,3 +74,4 @@
 - 2026-08-01：完成 Rust OS Vault 单篇第一次启动教程及双向导航；下一步由学习者打开教程，从“实验 0：确认当前起点”开始亲手执行。
 - 2026-08-06：第一次启动完成；当时的下一步是由学习者亲手完成自有 COM1 串口驱动替换 `uart_16550`。
 - 2026-08-09：自有 COM1 驱动已经通过最终运行验收；下一步先提交学习者的串口修复，再进入像素 framebuffer。
+- 2026-08-15：串口修复已提交；framebuffer 实验 03 教程和启动验证均已完成。下一步由学习者从教程“实验 0”开始，在正式项目中亲手实现并逐项观察。

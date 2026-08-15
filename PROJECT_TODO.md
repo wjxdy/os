@@ -1,8 +1,9 @@
 # 项目待办
 
 ## 下一步
-- [ ] 检查并提交工作区中的串口修复：三个寄存器偏移与 `Rust OS` 输出文案；验证已完成，但尚未创建 commit。
-- [ ] 按 Obsidian《06-阶段三规划：像素 Framebuffer》开始阶段三：先打开 QEMU 图形窗口并通过串口打印真实 framebuffer 元数据，再实现纯色填充。
+- [ ] 按 Obsidian《08-实验03：第一次像素 Framebuffer 输出》从“实验 0”开始亲手执行：先复核 runner 的未提交修改，再打印真实 framebuffer 元数据。
+- [ ] 亲手创建 `kernel/src/framebuffer.rs`，完成颜色、单像素、清屏、横线和矩形，并用 QEMU 图形窗口验收。
+- [ ] 实验 03 通过后复述 `take()`、stride、BGR 和 volatile 的作用，再检查并提交本阶段改动。
 
 ## 进行中
 - 无。
