@@ -77,4 +77,15 @@ impl FrameBufferWriter {
             self.write_pixel(current_x, y, color);
         }
     }
+
+    pub fn fill_rect(&mut self, x: usize, y: usize, width: usize, height: usize, color: Color) {
+        let x_end = x.saturating_add(width).min(self.info.width);
+        let y_end = y.saturating_add(height).min(self.info.height);
+
+        for current_y in y..y_end {
+            for current_x in x..x_end {
+                self.write_pixel(current_x, current_y, color);
+            }
+        }
+    }
 }

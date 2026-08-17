@@ -5,6 +5,7 @@ mod framebuffer;
 mod serial;
 use bootloader_api::{BootInfo, entry_point};
 use core::{fmt::Write, panic::PanicInfo};
+use framebuffer::{Color, FrameBufferWriter};
 
 entry_point!(kernel_main);
 
@@ -29,6 +30,15 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         info.width, info.height, info.stride, info.bytes_per_pixel, info.pixel_format
     )
     .expect("failed to write framebuffer info to COM1");
+
+    let mut screen = FrameBufferWriter::new(framebuffer);
+    screen.clear(Color::new(24, 32, 56));
+    screen.fill_rect(80, 80, 320, 180, Color::new(220, 50, 47));
+    screen.draw_horizontal_line(80, 300, 500, Color::new(80, 200, 120));
+    screen.write_pixel(info.width / 2, info.height / 2, Color::WHITE);
+
+    writeln!(serial, "framebuffer: test pattern drawn")
+        .expect("failed to write framebuffer status to COM1");
 
     loop {
         core::hint::spin_loop();
