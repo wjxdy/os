@@ -88,4 +88,32 @@ impl FrameBufferWriter {
             }
         }
     }
+    pub fn draw_glyph_8x8(
+        &mut self,
+        x: usize,
+        y: usize,
+        glyph: &[u8; 8],
+        scale: usize,
+        foreground: Color,
+        background: Color,
+    ) {
+        if scale == 0 {
+            return;
+        }
+
+        for (row, row_bits) in glyph.iter().copied().enumerate() {
+            for column in 0usize..8 {
+                let mask = 1u8 << (7 - column);
+                let color = if row_bits & mask != 0 {
+                    foreground
+                } else {
+                    background
+                };
+
+                let pixel_x = x.saturating_add(column.saturating_mul(scale));
+                let pixel_y = y.saturating_add(row.saturating_mul(scale));
+                self.fill_rect(pixel_x, pixel_y, scale, scale, color);
+            }
+        }
+    }
 }

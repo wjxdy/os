@@ -1,10 +1,12 @@
 #![no_std]
 #![no_main]
 
+mod font;
 mod framebuffer;
 mod serial;
 use bootloader_api::{BootInfo, entry_point};
 use core::{fmt::Write, panic::PanicInfo};
+use font::GLYPH_A;
 use framebuffer::{Color, FrameBufferWriter};
 
 entry_point!(kernel_main);
@@ -32,10 +34,16 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     .expect("failed to write framebuffer info to COM1");
 
     let mut screen = FrameBufferWriter::new(framebuffer);
-    screen.clear(Color::new(24, 32, 56));
-    screen.fill_rect(80, 80, 320, 180, Color::new(220, 50, 47));
-    screen.draw_horizontal_line(80, 300, 500, Color::new(80, 200, 120));
-    screen.write_pixel(info.width / 2, info.height / 2, Color::WHITE);
+    let background = Color::new(24, 32, 56);
+    screen.clear(background);
+
+    let scale = 12;
+    let glyph_size = 8usize.saturating_mul(scale);
+    let glyph_x = info.width.saturating_sub(glyph_size) / 2;
+    let glyph_y = info.height.saturating_sub(glyph_size) / 2;
+    screen.draw_glyph_8x8(glyph_x, glyph_y, &GLYPH_A, scale, Color::WHITE, background);
+    let underline_y = glyph_y.saturating_add(glyph_size).saturating_add(12);
+    screen.draw_horizontal_line(glyph_x, underline_y, glyph_size, Color::new(80, 200, 120));
 
     writeln!(serial, "framebuffer: test pattern drawn")
         .expect("failed to write framebuffer status to COM1");
