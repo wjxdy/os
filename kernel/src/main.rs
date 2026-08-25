@@ -6,7 +6,6 @@ mod framebuffer;
 mod serial;
 use bootloader_api::{BootInfo, entry_point};
 use core::{fmt::Write, panic::PanicInfo};
-use font::GLYPH_A;
 use framebuffer::{Color, FrameBufferWriter};
 
 entry_point!(kernel_main);
@@ -19,7 +18,7 @@ fn serial_port() -> serial::SerialPort {
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let mut serial = serial_port();
-    writeln!(serial, "Rust OS: kernel entered").expect("failed to write to COM1");
+    writeln!(serial, "framebuffer: text RUST OS drawn").expect("failed to write to COM1");
     let framebuffer = boot_info
         .framebuffer
         .take()
@@ -33,17 +32,37 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     )
     .expect("failed to write framebuffer info to COM1");
 
-    let mut screen = FrameBufferWriter::new(framebuffer);
     let background = Color::new(24, 32, 56);
-    screen.clear(background);
+    let mut screen = FrameBufferWriter::new(framebuffer, 4, Color::WHITE, background);
+    screen.clear_text_screen();
 
-    let scale = 12;
-    let glyph_size = 8usize.saturating_mul(scale);
-    let glyph_x = info.width.saturating_sub(glyph_size) / 2;
-    let glyph_y = info.height.saturating_sub(glyph_size) / 2;
-    screen.draw_glyph_8x8(glyph_x, glyph_y, &GLYPH_A, scale, Color::WHITE, background);
-    let underline_y = glyph_y.saturating_add(glyph_size).saturating_add(12);
-    screen.draw_horizontal_line(glyph_x, underline_y, glyph_size, Color::new(80, 200, 120));
+    writeln!(screen, "RUST OS").expect("failed to write title to framebuffer");
+    writeln!(screen, "STATUS").expect("failed to write status to framebuffer");
+
+    let project = "RUST";
+    let system = "OS";
+    writeln!(screen, "{project} {system}").expect("failed to write formatted text to framebuffer");
+    writeln!(screen, "RUST OS RUST OS RUST OS RUST OS RUST OS")
+        .expect("failed to write wrapping demo to framebuffer");
+
+    let footer_scale = 2;
+    let footer_height = 8usize.saturating_mul(footer_scale);
+    let footer_y = info.height.saturating_sub(footer_height).saturating_sub(4);
+    screen.draw_text(
+        0,
+        footer_y,
+        "RUST OS",
+        footer_scale,
+        Color::new(80, 200, 120),
+        background,
+    );
+
+    screen.draw_horizontal_line(
+        0,
+        info.height.saturating_sub(2),
+        info.width,
+        Color::new(80, 200, 120),
+    );
 
     writeln!(serial, "framebuffer: test pattern drawn")
         .expect("failed to write framebuffer status to COM1");

@@ -1,3 +1,4 @@
+use crate::font::{GLYPH_QUESTION, glyph_for};
 use bootloader_api::info::{FrameBuffer, FrameBufferInfo, PixelFormat};
 
 #[derive(Clone, Copy)]
@@ -18,13 +19,35 @@ impl Color {
 pub struct FrameBufferWriter {
     buffer: &'static mut [u8],
     info: FrameBufferInfo,
+    cursor_x: usize,
+    cursor_y: usize,
+    origin_x: usize,
+    origin_y: usize,
+    scale: usize,
+    foreground: Color,
+    background: Color,
 }
 
 impl FrameBufferWriter {
-    pub fn new(framebuffer: FrameBuffer) -> Self {
+    pub fn new(
+        framebuffer: FrameBuffer,
+        scale: usize,
+        foreground: Color,
+        background: Color,
+    ) -> Self {
         let info = framebuffer.info();
         let buffer = framebuffer.into_buffer();
-        Self { buffer, info }
+        Self {
+            buffer,
+            info,
+            cursor_x: 0,
+            cursor_y: 0,
+            origin_x: 0,
+            origin_y: 0,
+            scale: scale.max(1),
+            foreground,
+            background,
+        }
     }
 
     pub fn write_pixel(&mut self, x: usize, y: usize, color: Color) {
@@ -53,7 +76,7 @@ impl FrameBufferWriter {
                 let gray = ((color.red as u16 + color.green as u16 + color.blue as u16) / 3) as u8;
                 self.write_byte(pixel_offset, gray);
             }
-            _ => return,
+            _ => {}
         }
     }
 
@@ -115,5 +138,120 @@ impl FrameBufferWriter {
                 self.fill_rect(pixel_x, pixel_y, scale, scale, color);
             }
         }
+    }
+    pub fn draw_char(
+        &mut self,
+        x: usize,
+        y: usize,
+        character: char,
+        scale: usize,
+        foreground: Color,
+        background: Color,
+    ) {
+        let glyph = glyph_for(character).unwrap_or(&GLYPH_QUESTION);
+        self.draw_glyph_8x8(x, y, glyph, scale, foreground, background);
+    }
+    pub fn draw_text(
+        &mut self,
+        x: usize,
+        y: usize,
+        text: &str,
+        scale: usize,
+        foreground: Color,
+        background: Color,
+    ) {
+        if scale == 0 {
+            return;
+        }
+        let origin_x = x;
+        let mut cursor_x = x;
+        let mut cursor_y = y;
+        let advance = 9usize.saturating_mul(scale);
+
+        for character in text.chars() {
+            if character == '\n' {
+                cursor_x = origin_x;
+                cursor_y = cursor_y.saturating_add(advance);
+                continue;
+            }
+
+            self.draw_char(cursor_x, cursor_y, character, scale, foreground, background);
+            cursor_x = cursor_x.saturating_add(advance);
+        }
+    }
+
+    fn glyph_width(&self) -> usize {
+        8usize.saturating_mul(self.scale)
+    }
+
+    fn glyph_height(&self) -> usize {
+        8usize.saturating_mul(self.scale)
+    }
+
+    fn cell_width(&self) -> usize {
+        9usize.saturating_mul(self.scale)
+    }
+
+    fn line_height(&self) -> usize {
+        9usize.saturating_mul(self.scale)
+    }
+
+    pub fn reset_cursor(&mut self) {
+        self.cursor_x = self.origin_x;
+        self.cursor_y = self.origin_y;
+    }
+
+    pub fn clear_text_screen(&mut self) {
+        self.clear(self.background);
+        self.reset_cursor();
+    }
+
+    fn new_line(&mut self) {
+        self.cursor_x = self.origin_x;
+        let next_y = self.cursor_y.saturating_add(self.line_height());
+
+        if next_y.saturating_add(self.glyph_height()) > self.info.height {
+            self.clear_text_screen();
+        } else {
+            self.cursor_y = next_y;
+        }
+    }
+
+    pub fn write_character(&mut self, character: char) {
+        match character {
+            '\n' => {
+                self.new_line();
+                return;
+            }
+            '\r' => {
+                self.cursor_x = self.origin_x;
+                return;
+            }
+            _ => {}
+        }
+
+        if self.cursor_x.saturating_add(self.glyph_width()) > self.info.width {
+            self.new_line();
+        }
+
+        self.draw_char(
+            self.cursor_x,
+            self.cursor_y,
+            character,
+            self.scale,
+            self.foreground,
+            self.background,
+        );
+
+        self.cursor_x = self.cursor_x.saturating_add(self.cell_width());
+    }
+}
+
+impl core::fmt::Write for FrameBufferWriter {
+    fn write_str(&mut self, text: &str) -> core::fmt::Result {
+        for character in text.chars() {
+            self.write_character(character);
+        }
+        Ok(())
     }
 }
