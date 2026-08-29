@@ -1,16 +1,28 @@
 #![no_std]
 #![no_main]
 
-mod logger;
-mod sync;
 mod dual_writer;
 mod font;
 mod framebuffer;
+pub mod logger;
 mod serial;
+mod sync;
 use bootloader_api::{BootInfo, entry_point};
 use core::{fmt::Write, panic::PanicInfo};
-use dual_writer::DualWriter;
 use framebuffer::{Color, FrameBufferWriter};
+
+use self::logger::{KernelLogger, LOGGER};
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::logger::_print(format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! println {
+    () => ($crate::print!("\n"));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
 
 entry_point!(kernel_main);
 
@@ -39,19 +51,6 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let background = Color::new(24, 32, 56);
     let mut screen = FrameBufferWriter::new(framebuffer, 4, Color::WHITE, background);
     screen.clear_text_screen();
-    {
-        let mut logger = DualWriter::new(&mut serial, &mut screen);
-
-        writeln!(logger, "RUST OS").expect("failed to write title to framebuffer");
-        writeln!(logger, "STATUS").expect("failed to write status to framebuffer");
-
-        let project = "RUST";
-        let system = "OS";
-        writeln!(logger, "{project} {system}")
-            .expect("failed to write formatted text to framebuffer");
-        writeln!(logger, "RUST OS RUST OS RUST OS RUST OS RUST OS")
-            .expect("failed to write wrapping demo to framebuffer");
-    }
 
     let footer_scale = 2;
     let footer_height = 8usize.saturating_mul(footer_scale);
@@ -72,8 +71,19 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         Color::new(80, 200, 120),
     );
 
-    writeln!(serial, "dual writer: both outputs reached")
-        .expect("failed to write to COM1");
+    logger::init_logger(serial, screen);
+
+    println!("RUST OS");
+
+    println!("STATUS");
+
+    let project = "RUST";
+    let system = "OS";
+    println!("{project} {system}");
+
+    println!("RUST OS RUST OS RUST OS RUST OS RUST OS");
+
+    println!("RUST OS OK");
 
     loop {
         core::hint::spin_loop();

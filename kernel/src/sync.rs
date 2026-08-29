@@ -49,6 +49,6 @@ impl<T> DerefMut for SpinMutexGuard<'_, T> {
 
 impl<T> Drop for SpinMutexGuard<'_, T> {
     fn drop(&mut self) {
-        self.mutex.locked.store(false, Ordering::Release);
+        self.mutex.locked.store(false, order);
     }
 }
