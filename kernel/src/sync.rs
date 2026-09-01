@@ -27,6 +27,16 @@ impl<T> SpinMutex<T> {
         }
         SpinMutexGuard { mutex: self }
     }
+
+    pub fn try_lock(&self) -> Option<SpinMutexGuard<'_, T>> {
+        match self
+            .locked
+            .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
+        {
+            Ok(_) => Some(SpinMutexGuard { mutex: self }),
+            Err(_) => None,
+        }
+    }
 }
 
 pub struct SpinMutexGuard<'a, T> {
@@ -49,6 +59,6 @@ impl<T> DerefMut for SpinMutexGuard<'_, T> {
 
 impl<T> Drop for SpinMutexGuard<'_, T> {
     fn drop(&mut self) {
-        self.mutex.locked.store(false, order);
+        self.mutex.locked.store(false, Ordering::Release);
     }
 }

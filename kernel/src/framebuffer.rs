@@ -201,6 +201,11 @@ impl FrameBufferWriter {
         self.cursor_y = self.origin_y;
     }
 
+    pub fn set_text_colors(&mut self, foreground: Color, background: Color) {
+        self.foreground = foreground;
+        self.background = background;
+    }
+
     pub fn clear_text_screen(&mut self) {
         self.clear(self.background);
         self.reset_cursor();

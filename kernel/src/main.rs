@@ -1,17 +1,20 @@
 #![no_std]
 #![no_main]
+#![feature(abi_x86_interrupt)]
 
 mod dual_writer;
 mod font;
 mod framebuffer;
+mod interrupts;
 pub mod logger;
+mod memory;
 mod serial;
 mod sync;
 use bootloader_api::{BootInfo, entry_point};
 use core::{fmt::Write, panic::PanicInfo};
 use framebuffer::{Color, FrameBufferWriter};
-
-use self::logger::{KernelLogger, LOGGER};
+use memory::BootInfoFrameAllocator;
+use x86_64::structures::paging::FrameAllocator;
 
 #[macro_export]
 macro_rules! print {
@@ -26,7 +29,7 @@ macro_rules! println {
 
 entry_point!(kernel_main);
 
-fn serial_port() -> serial::SerialPort {
+pub(crate) fn serial_port() -> serial::SerialPort {
     let mut port = unsafe { serial::SerialPort::new(0x3F8) };
     port.init();
     port
@@ -34,7 +37,7 @@ fn serial_port() -> serial::SerialPort {
 
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     let mut serial = serial_port();
-    writeln!(serial, "framebuffer: kernel entered").expect("failed to write to COM1");
+    writeln!(serial, "Rust OS: kernel entered").expect("failed to write to COM1");
     let framebuffer = boot_info
         .framebuffer
         .take()
@@ -73,6 +76,21 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     logger::init_logger(serial, screen);
 
+    interrupts::init();
+    memory::print_memory_map(&boot_info.memory_regions);
+
+    let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_regions) };
+
+    for index in 0..5 {
+        match frame_allocator.allocate_frame() {
+            Some(frame) => crate::println!(
+                "ALLOCATED FRAME {index}: {:#x}",
+                frame.start_address().as_u64()
+            ),
+            None => crate::println!("ALLOCATED FRAME {index}: NONE"),
+        }
+    }
+
     println!("RUST OS");
 
     println!("STATUS");
@@ -92,7 +110,9 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    let _ = writeln!(serial_port(), "KERNEL PANIC: {info}");
+    if !logger::try_print_panic(format_args!("KERNEL PANIC: {info}\n")) {
+        let _ = writeln!(serial_port(), "EMERGENCY KERNEL PANIC: {info}");
+    };
 
     loop {
         core::hint::spin_loop();
