@@ -10,7 +10,7 @@ pub mod logger;
 mod memory;
 mod serial;
 mod sync;
-use bootloader_api::{BootInfo, entry_point};
+use bootloader_api::{BootInfo, BootloaderConfig, config::Mapping, entry_point};
 use core::{fmt::Write, panic::PanicInfo};
 use framebuffer::{Color, FrameBufferWriter};
 use memory::BootInfoFrameAllocator;
@@ -27,7 +27,13 @@ macro_rules! println {
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
-entry_point!(kernel_main);
+const BOOTLOADER_CONFIG: BootloaderConfig = {
+    let mut config = BootloaderConfig::new_default();
+    config.mappings.physical_memory = Some(Mapping::Dynamic);
+    config
+};
+
+entry_point!(kernel_main, config = &BOOTLOADER_CONFIG);
 
 pub(crate) fn serial_port() -> serial::SerialPort {
     let mut port = unsafe { serial::SerialPort::new(0x3F8) };
