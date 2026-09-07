@@ -11,7 +11,6 @@ fn main() {
         .arg(drive)
         .arg("-serial")
         .arg("mon:stdio")
-        .arg("none")
         .arg("-no-reboot")
         .status()
         .expect("failed to start qemu-system-x86_64");
