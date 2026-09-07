@@ -1,6 +1,6 @@
 pub type Glyph = [u8; 8];
 
-const GLYPH_A: Glyph = [
+pub const GLYPH_A: Glyph = [
     0b0001_1000,
     0b0010_0100,
     0b0100_0010,

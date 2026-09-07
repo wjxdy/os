@@ -14,6 +14,8 @@ use bootloader_api::{BootInfo, BootloaderConfig, config::Mapping, entry_point};
 use core::{fmt::Write, panic::PanicInfo};
 use framebuffer::{Color, FrameBufferWriter};
 use memory::BootInfoFrameAllocator;
+use x86_64::VirtAddr;
+use x86_64::registers::control::Cr3;
 use x86_64::structures::paging::FrameAllocator;
 
 #[macro_export]
@@ -83,6 +85,33 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     logger::init_logger(serial, screen);
 
     interrupts::init();
+
+    let physical_memory_offset = VirtAddr::new(
+        boot_info
+            .physical_memory_offset
+            .into_option()
+            .expect("bootloader did not map physical memory"),
+    );
+    println!("PHYS OFFSET: {:#x}", physical_memory_offset.as_u64());
+
+    let (p4_frame, _) = Cr3::read();
+    let p4_phys = p4_frame.start_address();
+    println!("P4 PHYS: {:#x}", p4_phys.as_u64());
+    let p4_virt = physical_memory_offset + p4_phys.as_u64();
+    println!("P4 VIRT: {:#x}", p4_virt.as_u64());
+
+    let mapper = unsafe { memory::init_offset_page_table(physical_memory_offset) };
+    let kernel_address = VirtAddr::new(kernel_main as *const () as u64);
+    memory::print_level_4_entry(&mapper, kernel_address);
+
+    let stack_address = VirtAddr::from_ptr(&physical_memory_offset);
+    let boot_info_address = VirtAddr::from_ptr(&*boot_info);
+
+    memory::print_address_pasts("KERNEL", kernel_address);
+    memory::print_translation(&mapper, "STARK", stack_address);
+    memory::print_translation(&mapper, "BOOT INFO", boot_info_address);
+    memory::print_translation(&mapper, "PHYSICAL ZERO WINDOW", physical_memory_offset);
+
     memory::print_memory_map(&boot_info.memory_regions);
 
     let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_regions) };
